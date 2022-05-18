@@ -1,11 +1,35 @@
 import Head from "next/head";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "../styles/Home.module.css";
+import { getKeys } from "../utils";
+import NodeRSA from "node-rsa";
 
 export default function Home() {
   const [userMessage, setUserMessage] = useState("");
-  function handlerButton() {}
+  const [ownPrivateKey, setOwnPrivateKey] = useState(null);
+  const [ownPublicKey, setOwnPublicKey] = useState(null);
+  async function handlerButton() {
+    const key = new NodeRSA();
+    await key.importKey(ownPublicKey, "public");
+    const encriptedMessage = await key.encrypt(userMessage);
+    console.log(
+      "mensagem encriptada com chave pública",
+      encriptedMessage
+    );
+    await key.importKey(ownPrivateKey, "private");
+    console.log("mensagem descriptografada com chave privada",  key.decrypt(encriptedMessage).toString());
+  }
+  useEffect(() => {
+    const generateKeys = async () => {
+      const keys = await getKeys();
+      console.log(keys[0]);
+      console.log(keys[1]);
+      setOwnPrivateKey(keys[0]);
+      setOwnPublicKey(keys[1]);
+    };
+    generateKeys();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -24,7 +48,9 @@ export default function Home() {
           value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
         />
-        <button onClick={handlerButton}>Clique aqui para enviar a mensagem</button>
+        <button onClick={handlerButton}>
+          Clique aqui para enviar a mensagem
+        </button>
       </section>
     </div>
   );
