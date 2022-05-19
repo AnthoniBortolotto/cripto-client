@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "../styles/Home.module.css";
 import { getKeys } from "../utils";
 import NodeRSA from "node-rsa";
+import axios from "axios";
 
 export default function Home() {
   const [userMessage, setUserMessage] = useState("");
@@ -27,6 +28,9 @@ export default function Home() {
       console.log(keys[1]);
       setOwnPrivateKey(keys[0]);
       setOwnPublicKey(keys[1]);
+      await axios.post("http://localhost:8080/keys", {
+        publicKey: keys[1],
+      })
     };
     generateKeys();
   }, []);
