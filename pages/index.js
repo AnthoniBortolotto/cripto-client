@@ -10,27 +10,33 @@ export default function Home() {
   const [userMessage, setUserMessage] = useState("");
   const [ownPrivateKey, setOwnPrivateKey] = useState(null);
   const [ownPublicKey, setOwnPublicKey] = useState(null);
+  const [serverPublicKey, setServerPublicKey] = useState(null);
   async function handlerButton() {
-    const key = new NodeRSA();
-    await key.importKey(ownPublicKey, "public");
-    const encriptedMessage = await key.encrypt(userMessage);
+    const serverKey = new NodeRSA();
+    console.log(serverPublicKey);
+    await serverKey.importKey(serverPublicKey, "public");
+    console.log(userMessage);
+    const encriptedMessage = await serverKey.encrypt(userMessage);
     console.log(
       "mensagem encriptada com chave pública",
       encriptedMessage
     );
-    await key.importKey(ownPrivateKey, "private");
-    console.log("mensagem descriptografada com chave privada",  key.decrypt(encriptedMessage).toString());
+    await axios.post("http://localhost:8080/", {
+      msg: encriptedMessage
+    });
+    /* await key.importKey(ownPrivateKey, "private");
+    console.log("mensagem descriptografada com chave privada",  key.decrypt(encriptedMessage).toString()); */
   }
   useEffect(() => {
     const generateKeys = async () => {
       const keys = await getKeys();
-      console.log(keys[0]);
-      console.log(keys[1]);
       setOwnPrivateKey(keys[0]);
       setOwnPublicKey(keys[1]);
-      await axios.post("http://localhost:8080/keys", {
+     const req = await axios.post("http://localhost:8080/keys", {
         publicKey: keys[1],
-      })
+      });
+      const receivedPublicKey  = req.data.serverPublicKey;
+      await setServerPublicKey(receivedPublicKey);
     };
     generateKeys();
   }, []);
@@ -44,7 +50,7 @@ export default function Home() {
       </Head>
       <section>
         <h1>
-          Digite a mensagem para ser enviade de forma segura para o servidor:{" "}
+          Digite a mensagem para ser enviada de forma segura para o servidor:{" "}
         </h1>
         <input
           type="text"
