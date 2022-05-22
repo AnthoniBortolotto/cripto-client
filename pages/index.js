@@ -11,6 +11,7 @@ export default function Home() {
   const [ownPrivateKey, setOwnPrivateKey] = useState(null);
   const [ownPublicKey, setOwnPublicKey] = useState(null);
   const [serverPublicKey, setServerPublicKey] = useState(null);
+  const [serverMsg, setServerMsg] = useState(null);
   async function handlerButton() {
     const serverKey = new NodeRSA();
     console.log(serverPublicKey);
@@ -21,9 +22,12 @@ export default function Home() {
       "mensagem encriptada com chave pública",
       encriptedMessage
     );
-    await axios.post("http://localhost:8080/", {
+    const res = await axios.post("http://localhost:8080/", {
       msg: encriptedMessage
     });
+    const decrypter = await new NodeRSA(ownPrivateKey);
+    const decriptedMessage = await decrypter.decrypt(res.data.msg);
+    setServerMsg(decriptedMessage.toString());
     /* await key.importKey(ownPrivateKey, "private");
     console.log("mensagem descriptografada com chave privada",  key.decrypt(encriptedMessage).toString()); */
   }
@@ -61,6 +65,8 @@ export default function Home() {
         <button onClick={handlerButton}>
           Clique aqui para enviar a mensagem
         </button>
+
+        {serverMsg !== null && <h1>Mensagem do servidor: {serverMsg}</h1>}
       </section>
     </div>
   );
