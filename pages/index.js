@@ -16,7 +16,7 @@ export default function Home() {
     console.log(serverPublicKey);
     await serverKey.importKey(serverPublicKey, "public");
     console.log(userMessage);
-    const encriptedMessage = await serverKey.encrypt(userMessage);
+    const encriptedMessage = await serverKey.encrypt(userMessage, "base64");
     console.log(
       "mensagem encriptada com chave pública",
       encriptedMessage
