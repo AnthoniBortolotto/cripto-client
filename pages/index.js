@@ -12,35 +12,33 @@ export default function Home() {
   const [ownPublicKey, setOwnPublicKey] = useState(null);
   const [serverPublicKey, setServerPublicKey] = useState(null);
   const [serverMsg, setServerMsg] = useState(null);
-  async function handlerButton() {
-    const serverKey = new NodeRSA();
-    console.log(serverPublicKey);
-    await serverKey.importKey(serverPublicKey, "public");
+  async function handlerButton() { // executa quando o botão é clicado
+    const serverKey = new NodeRSA(); 
+    console.log(serverPublicKey); // imprime a chave pública do servidor
+    await serverKey.importKey(serverPublicKey, "public"); // importa a chave pública do servidor
     console.log(userMessage);
-    const encriptedMessage = await serverKey.encrypt(userMessage, "base64");
+    const encriptedMessage = await serverKey.encrypt(userMessage, "base64"); // encripta a mensagem do usuário
     console.log(
       "mensagem encriptada com chave pública",
       encriptedMessage
     );
     const res = await axios.post("http://localhost:8080/", {
       msg: encriptedMessage
-    });
-    const decrypter = await new NodeRSA(ownPrivateKey);
-    const decriptedMessage = await decrypter.decrypt(res.data.msg);
-    setServerMsg(decriptedMessage.toString());
-    /* await key.importKey(ownPrivateKey, "private");
-    console.log("mensagem descriptografada com chave privada",  key.decrypt(encriptedMessage).toString()); */
+    }); // envia a mensagem encriptada para o servidor e guarda a mensagem encriptada do servidor
+    const decrypter = await new NodeRSA(ownPrivateKey); //importa a chave privada do cliente
+    const decriptedMessage = await decrypter.decrypt(res.data.msg); // decripta a mensagem do servidor com a chave privada do cliente
+    setServerMsg(decriptedMessage.toString()); // seta a mensagem decriptada do servidor em um state para ser exibido na tela
   }
-  useEffect(() => {
+  useEffect(() => { // executa quando o componente é montado
     const generateKeys = async () => {
-      const keys = await getKeys();
-      setOwnPrivateKey(keys[0]);
-      setOwnPublicKey(keys[1]);
-     const req = await axios.post("http://localhost:8080/keys", {
+      const keys = await getKeys(); // gera chaves pública e privada
+      setOwnPrivateKey(keys[0]); // guarda chave privada
+      setOwnPublicKey(keys[1]); // guarda chave pública
+     const req = await axios.post("http://localhost:8080/keys", { 
         publicKey: keys[1],
-      });
-      const receivedPublicKey  = req.data.serverPublicKey;
-      await setServerPublicKey(receivedPublicKey);
+      }); // envia chave pública para o servidor
+      const receivedPublicKey  = req.data.serverPublicKey; // recebe chave pública do servidor
+      await setServerPublicKey(receivedPublicKey); // guarda chave pública do servidor
     };
     generateKeys();
   }, []);
